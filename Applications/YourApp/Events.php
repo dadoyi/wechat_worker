@@ -28,10 +28,11 @@ use \GatewayWorker\Lib\Gateway;
  */
 class Events
 {
-    const INIT = 'init';
-    // const BEGIN = 'begin';
-    const PUSH = 'push';
-    const SEND = 'send';
+    const INIT = 'init'; // 初始化
+    const PUSH = 'push'; // 单个发送消息
+    const SEND = 'send'; // 群聊
+    const JOIN = 'join'; // 加入群组
+
 
     /**
      * 当客户端连接时触发
@@ -68,9 +69,23 @@ class Events
                     'message' => $data['message'],
                     'user_id' => $data['user_id'],
                 ]));
+
+                //加入群聊
+                if(!empty($data['data'])) {
+                    foreach ($data['data'] as $k => $v){
+                        $group = 'group_'.$v;
+                        Gateway::joinGroup($client_id,$group);
+                        Gateway::sendToAll(json_encode([
+                            'data' => 'success',
+                            'type' => self::INIT,
+                            'message' => 'join '.$group,
+                            'user_id' => $data['user_id'],
+                        ]));
+                    }
+                }
                 break;
             case self::PUSH:
-                var_export($data);
+                // var_export($data);
                 Gateway::sendToUid($data['to_user_id'],json_encode([
                     'data' => 'success',
                     'type' => self::PUSH,
@@ -78,10 +93,27 @@ class Events
                     'user_id' => $data['user_id'],
                     'to_user_id' => $data['to_user_id'],
                 ]));
+
+
                 break;
             case self::SEND:
+                $group = 'group_'.$data['from_id'];
+                Gateway::joinGroup($client_id,$group);
+                // var_export(Gateway::getClientIdListByGroup($group));
                 // var_export($data);
-                // Gateway::sendToUid($data['to_user_id'],json_encode([
+                // Gateway::sendToGroup(json_encode([
+                //     'data' => 'success',
+                //     'type' => self::PUSH,
+                //     'message' => $data['data'],
+                //     'user_id' => $data['user_id']
+                // ]));
+                break;
+            case self::JOIN:
+                $group = 'group_'.$data['from_id'];
+                Gateway::joinGroup($client_id,$group);
+                var_export(Gateway::getClientIdListByGroup($group));
+                // var_export($data);
+                // Gateway::sendToGroup(json_encode([
                 //     'data' => 'success',
                 //     'type' => self::PUSH,
                 //     'message' => $data['data'],
