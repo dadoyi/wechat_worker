@@ -63,7 +63,7 @@ class Events
             case self::INIT:
                 // 初次连接绑定uid 发送首次连接消息
                 Gateway::bindUid($client_id,$data['user_id']);
-                Gateway::sendToAll(json_encode([
+                Gateway::sendToUid($data['user_id'],json_encode([
                     'data' => 'success',
                     'type' => self::INIT,
                     'message' => $data['message'],
@@ -93,32 +93,16 @@ class Events
                     'user_id' => $data['user_id'],
                     'to_user_id' => $data['to_user_id'],
                 ]));
-
-
                 break;
             case self::SEND:
                 $group = 'group_'.$data['from_id'];
-                Gateway::joinGroup($client_id,$group);
-                // var_export(Gateway::getClientIdListByGroup($group));
-                // var_export($data);
-                // Gateway::sendToGroup(json_encode([
-                //     'data' => 'success',
-                //     'type' => self::PUSH,
-                //     'message' => $data['data'],
-                //     'user_id' => $data['user_id']
-                // ]));
-                break;
-            case self::JOIN:
-                $group = 'group_'.$data['from_id'];
-                Gateway::joinGroup($client_id,$group);
-                var_export(Gateway::getClientIdListByGroup($group));
-                // var_export($data);
-                // Gateway::sendToGroup(json_encode([
-                //     'data' => 'success',
-                //     'type' => self::PUSH,
-                //     'message' => $data['data'],
-                //     'user_id' => $data['user_id']
-                // ]));
+                Gateway::sendToGroup($group,json_encode([
+                    'data' => 'success',
+                    'type' => self::SEND,
+                    'message' => $data['message'],
+                    'user_id' => $data['user_id'],
+                    'img' => $data['img'],
+                ]));
                 break;
         }
         // 向所有人发送 
